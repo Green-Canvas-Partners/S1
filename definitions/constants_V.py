@@ -114,6 +114,9 @@ EPS_DATA_UPDATED_PKL_L = os.path.join(DATA_DIR_L, 'updated_eps_data.pkl')
 DIVIDEND_DATA_TESTING_PKL_L = os.path.join(DATA_DIR_L, 'dividend_data_testing.pkl')
 DIVIDEND_DATA_UPDATED_PKL_L = os.path.join(DATA_DIR_L, 'updated_dividend_data.pkl')
 
+EQUITY_DATA_TESTING_PKL_L = os.path.join(DATA_DIR_L, 'equity_data_testing.pkl')
+EQUITY_DATA_UPDATED_PKL_L = os.path.join(DATA_DIR_L, 'updated_equity_data.pkl')
+
 
 DV_QUANTILE_THRESHOLD_MAKE_YS_V=[0.05, 0.2, 0.33, 0.5, 0.66, 0.75, 0.9]
 SELECTED_TOP_VOL_STOCKS_MAKE_YS_V=[11, 13, 20, 27, 35, 40, 50, 75, 100, 125, 150, 200]#

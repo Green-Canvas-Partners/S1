@@ -178,6 +178,56 @@ def shares_outstanding_data_downloader(tickers,api_key):
     print("Data saved to 'shares_outstanding_data_250.pkl'")
     return shares_data
 
+def equity_data_downloader(tickers,api_key):
+    equity = {}
+    # Loop through each stock to fetch and store its equity data
+    for stock in tickers:
+        print(f"Fetching data for {stock}...")
+        # Construct the API URL for the stock
+        url = f'https://eodhistoricaldata.com/api/fundamentals/{stock}.{exchange}?api_token={api_key}'
+        
+        # Make the API request
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            data = response.json()
+            try:
+                # Extract quarterly balance sheet data
+                quarterly_data = data['Financials']['Balance_Sheet']['quarterly']
+                equity_data = []
+                
+                # Process each quarterly entry
+                for date, details in quarterly_data.items():
+                    equity_value = details.get('totalStockholderEquity', 'N/A')
+                    try:
+                        # Convert equity to millions and ensure it’s an integer
+                        equity_in_millions = int(float(equity_value) / 1000000)
+                        equity_data.append({
+                            'Date': date,
+                            'Total Stockholder Equity (Millions)': equity_in_millions
+                        })
+                    except (TypeError, ValueError):
+                        # Handle missing or invalid equity values
+                        equity_data.append({
+                            'Date': date,
+                            'Total Stockholder Equity (Millions)': None
+                        })
+                
+                # Create a DataFrame from the processed data
+                df = pd.DataFrame(equity_data)
+                # Convert 'Date' column to datetime format
+                df['Date'] = pd.to_datetime(df['Date'])
+                # Sort by date in ascending order
+                df = df.sort_values('Date')
+                df['Total Stockholder Equity (Millions)_shifted'] = df['Total Stockholder Equity (Millions)'].shift(1)
+                # Store the DataFrame in the equity dictionary
+                equity[stock] = df
+                print(f"Data for {stock} successfully fetched and processed.")
+            except KeyError as e:
+                print(f"Error for {stock}: Could not find expected data structure. Key error: {e}")
+        else:
+            print(f"Failed to fetch data for {stock}. Status code: {response.status_code}")
+
 
 def update_data(file_path, df, output_file):
     with open(file_path, 'rb') as file:
@@ -686,58 +736,58 @@ def process_single_dataframe_E(df, number=0):
 
 
     ticker = [col.split('_')[0] for col in df.columns if '_Close' in col][0]
+    print(ticker)
     if ticker in shares:
-        # print(ticker)
+        print('here2')
+        print(ticker)
         shar = shares[ticker]
-        div = divident[ticker]
-        earning = eps[ticker]
-
-        div = pd.DataFrame(div)
-        div.reset_index(inplace=True)
+        eq = equity[ticker]
         
         shar['Shares Outstanding'] = shar['Shares Outstanding'].astype(str).str[:-4].astype(int)
 
         filtered_da = df
         filtered_da.reset_index(inplace=True)
 
+
         filtered_da['Date'] = pd.to_datetime(filtered_da['Date'])
         shar['Date'] = pd.to_datetime(shar['Date'])
-        earning['reportDate'] = pd.to_datetime(earning['reportDate'])
-        div['Date'] = pd.to_datetime(div['Date'])
+        eq['Date'] = pd.to_datetime(eq['Date'])
+
 
         shar = shar.sort_values('Date')
-        div = div.sort_values('Date')
-        earning = earning.sort_values('reportDate')
-        earning['Date'] = earning['reportDate']
+        eq = eq.sort_values('Date')
 
         daily_dates_shares = pd.date_range(start=shar['Date'].min(), end=shar['Date'].max(), freq='D')
+
         daily_df_shares = pd.DataFrame(daily_dates_shares, columns=['Date'])
 
         daily_shares = pd.merge(daily_df_shares, shar, on='Date', how='left')
-        daily_divident = pd.merge(daily_df_shares, div, on='Date', how='left')
-        daily_earnings = pd.merge(daily_df_shares, earning, on='Date', how='left')
-
+#         daily_divident = pd.merge(daily_df_shares, div, on='Date', how='left')
+        daily_equity = pd.merge(daily_df_shares, eq, on='Date', how='left')
+        
         daily_shares['Shares Outstanding'] = daily_shares['Shares Outstanding'].fillna(method='ffill')
-        daily_divident['Dividends'] = daily_divident['Dividends'].fillna(method='ffill')
-        daily_earnings['epsActual'] = daily_earnings['epsActual'].fillna(method='ffill')
+#         daily_divident['Dividends'] = daily_divident['Dividends'].fillna(method='ffill')
+        daily_equity['Total Stockholder Equity (Millions)_shifted'] = daily_equity['Total Stockholder Equity (Millions)_shifted'].fillna(method='ffill')
 
+        
+        #     print(filtered_da)
+    #     print('*************')
+    #     print(daily_df_shares)
         combined_df = pd.merge(daily_shares,filtered_da,on='Date')
-        combined_df = pd.merge(daily_divident,combined_df,on='Date')
-        combined_df = pd.merge(daily_earnings,combined_df,on='Date')
+        combined_df = pd.merge(daily_equity,combined_df,on='Date')
 
         a = combined_df
         a['market cap'] = a['Shares Outstanding'] * a[f'{ticker}_Close']
-        a['earn yield'] = (a['epsActual'] * a['Shares Outstanding'])/a['market cap']
-        a['Dividends'].fillna(0,inplace=True)
-        a['earningsTTM'] = (a['Dividends'] * 4)/ a['market cap']
-        a['earningsTTM2'] = (a['Dividends'] * 4)/ a[f'{ticker}_Close']
-        a['earnings_yield'] = 0.75 * a['earn yield'] + 0.15 * a['earningsTTM'] + 0.10 * a['earningsTTM2']
+        a['book_to_price'] = a['Total Stockholder Equity (Millions)_shifted']/a['market cap']
+
+        
         a['Stock'] = ticker
-        # print(a)
-        a = a[['Date','Stock','earnings_yield',f'{ticker}_Open_shift']]
+        print(a)
+        a = a[['Date','Stock','book_to_price',f'{ticker}_Open_shift']]
 
         a.rename(columns={f'{ticker}_Open_shift': 'Open_shift'}, inplace=True)
         return a
+
 
 
 
