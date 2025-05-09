@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 import os
 import pandas as pd
 # Root directories
-ROOT_DIR = '/home/iyad/E1_DIR'
+ROOT_DIR = '/home/iyad/S1_DIR'
 
-DATA_DIR_L = os.path.join(ROOT_DIR, 'data_E')
+DATA_DIR_L = os.path.join(ROOT_DIR, 'data_S')
 
 
 SINGLE_RUN_DIR_L = os.path.join(DATA_DIR_L, 'single_run')

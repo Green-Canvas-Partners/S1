@@ -67,7 +67,7 @@ YEARSTOCKS={key: [] for key in [2005+1, 2006+1, 2007+1, 2008+1,2009+1, 2010+1,20
 2015+1, 2016+1, 2017+1, 2018+1, 2019+1, 2020+1, 2021+1, 2022+1, 2023+1, 2024+1]}#
 
 # Root directories
-ROOT_DIR = '/home/iyad/E1_DIR'
+ROOT_DIR = '/home/iyad/S1_DIR'
 ROOT_DIR_V = '/home/iyad/V1_DIR'
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
 
