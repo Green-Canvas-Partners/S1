@@ -1,0 +1,9 @@
+*.log
+*.pdf
+*.pkl
+*.csv
+
+__pycache__/
+*.py[cod]
+
+*.cpython-*.pyc
