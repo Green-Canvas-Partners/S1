@@ -1,7 +1,7 @@
 from datetime import timedelta
 import pandas as pd
 from definitions.constants import BOND_TICKERS, END_DATE_DATA_DOWNLOAD, START_DATE_DATA_DOWNLOAD
-from definitions.constants_V import SHARE_OUTSTANDING_DATA_250_TESTING_PKL_L, SHARES_OUTSTANDING_DATA_250_UPDATED_PKL_L, EPS_DATA_TESTING_PKL_L, EPS_DATA_UPDATED_PKL_L, DIVIDEND_DATA_TESTING_PKL_L, DIVIDEND_DATA_UPDATED_PKL_L
+from definitions.constants_V import SHARE_OUTSTANDING_DATA_250_TESTING_PKL_L, SHARES_OUTSTANDING_DATA_250_UPDATED_PKL_L, EPS_DATA_TESTING_PKL_L, EPS_DATA_UPDATED_PKL_L, DIVIDEND_DATA_TESTING_PKL_L, DIVIDEND_DATA_UPDATED_PKL_L,EQUITY_DATA_TESTING_PKL_L,EQUITY_DATA_UPDATED_PKL_L
 import yfinance as yf
 import math
 import pickle
@@ -179,6 +179,8 @@ def shares_outstanding_data_downloader(tickers,api_key):
     return shares_data
 
 def equity_data_downloader(tickers,api_key):
+    
+    exchange = 'US'
     equity = {}
     # Loop through each stock to fetch and store its equity data
     for stock in tickers:
@@ -227,6 +229,13 @@ def equity_data_downloader(tickers,api_key):
                 print(f"Error for {stock}: Could not find expected data structure. Key error: {e}")
         else:
             print(f"Failed to fetch data for {stock}. Status code: {response.status_code}")
+
+    with open(EQUITY_DATA_TESTING_PKL_L, 'wb') as f:
+        pickle.dump(equity, f)
+
+    print("Data saved to ", EQUITY_DATA_TESTING_PKL_L)
+    return equity
+
 
 
 def update_data(file_path, df, output_file):
